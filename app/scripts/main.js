@@ -7,6 +7,35 @@ const DB_NAME_MULTIPLE = "idb_multi";
 const STORE_NAME_1 = "idb_store_1";
 const STORE_NAME_2 = "idb_store_2";
 
+function testIndexDB() {
+  const request = indexedDB.open("peopledb");
+  let db;
+
+  request.onupgradeneeded = function () {
+    const db = request.result;
+    const store = db.createObjectStore("people", { keyPath: "id" });
+    store.createIndex("by_name", "name");
+    store.createIndex("id", "id", { unique: true });
+
+    store.put({ name: "Enrique", surname: "Molinari", id: 1 });
+    store.put({ name: "Jorge", surname: "Marcos", id: 2 });
+    store.put({ name: "Nicolas", surname: "Armein", id: 3 });
+  };
+
+  request.onsuccess = function () {
+    db = request.result;
+
+    const tx = db.transaction("people", "readwrite");
+    const store = tx.objectStore("people");
+
+    store.put({ name: "Josefina", surname: "Alliani", id: 4 });
+
+    tx.oncomplete = function () {
+      console.log("done!");
+    };
+  };
+}
+
 async function open() {
   //The second parameter of the openDB is the version. This is used to upgrade the schema when
   //a first version is already in production.
@@ -147,3 +176,5 @@ async function txMultipleStore() {
 }
 
 //txMultipleStore();
+
+testIndexDB();
